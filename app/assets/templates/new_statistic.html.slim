@@ -1,0 +1,41 @@
+div
+  div ng-hide="sent" flex="" layout="column" layout-align="center center" layout-fill=""
+    h1 New statistic
+
+    div ng-repeat='row in rows' layout-fill=""
+      div layout="row" layout-align="end center" layout-margin=""
+        md-button md-no-ink="" class="md-icon-button md-mini" aria-label="Remove row" ng-click='removeRow(row)'
+          ng-md-icon icon="close" style="fill: black" size="20" layout-align="center center"
+      div ng-include='row.url'
+      md-divider ng-if="!$last"
+
+    div layout="row" layout-align="start start" layout-fill=""
+      md-button class="md-fab" aria-label="Add row" ng-click='addRow()' 
+        ng-md-icon icon="add" size="30" layout-align="center center"
+
+    form name='statisticRequestForm' layout-fill=""
+      div layout="column" layout-align="end end" layout-margin="" class="new-request-form"
+        div layout="row" class="form-row" layout-align="center center"
+          md-input-container class="md-block email" flex=""
+            label Name
+            input type="text" name="name" ng-model="request.name"
+        div ng-if="user.admin" layout="row" layout-align="center center" class="form-row"
+          md-checkbox md-no-ink="" aria-label="Make periodic" ng-model="request.periodic" class="checkbox md-primary" name="periodic" Make periodic
+          md-select ng-model='request.period' ng-disabled="!request.periodic" flex=""
+            md-option ng-value='period.name' ng-repeat='period in periods' {{period.desc}}
+        div layout="row" layout-align="center center" class="form-row"
+          md-checkbox md-no-ink="" aria-label="Send email" ng-model="sendEmail" class="checkbox md-primary" Send email
+          md-input-container class="md-block email" flex=""
+            label Email
+            input type="email" name="email" ng-model="request.email" ng-pattern="/^.+@.+\..+$/" ng-disabled="!sendEmail"
+            div ng-messages="statisticRequestForm.email.$error" role="alert"
+              div ng-message-exp="['pattern']" That doesn't look like an email address
+        div ng-if="user.admin" class="md-errors-spacer"
+          div class="error-message" ng-show="error" Some of the requested statistics cannot be made periodic
+
+        md-button class="md-raised md-primary" ng-click='submit()' Submit
+
+  div ng-show="sent" flex="" layout="column" layout-align="center center"
+    h2 Your request was succesfully sent!
+    h4 When ready, your statistic will be available here:
+    a ng-href="{{statisticUrl}}" {{statisticUrl}}

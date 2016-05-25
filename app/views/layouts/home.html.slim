@@ -1,0 +1,30 @@
+doctype html
+html
+  head
+    title Multi-Input Cloud Hardware Accounting Layer
+    = csrf_meta_tag
+    = stylesheet_link_tag 'application', media: 'all'
+    = javascript_include_tag 'application'
+
+  body layout="column" ng-app="michal" ng-controller="ctrl"
+    div layout="column" flex=""
+      md-toolbar layout="row" layout-align="start center" md-scroll-shrink="false" class="michal-toolbar"
+        div class="md-toolbar-tools"
+          a ng-href="#{root_path}" class="title" layout-margin=""
+            h3 Multi-Input Cloud Hardware Accounting Layer
+          span flex=""
+          div class="toolbar-buttons"
+            md-button aria-label="New Statistic" ng-href="/statistics/new"
+              ng-md-icon icon="add" class="button-icon" style="margin-bottom: 7px" size="30" layout-align="center center"
+              |New Statistic
+            md-button aria-label="Statistics" ng-href="/statistics"
+              ng-md-icon icon="timeline" class="button-icon" layout-align="center center"
+              |Statistics
+          div layout="row" layout-align="start center"
+            img gravatar-src="user.email" layout-margin=""
+            div layout="column" layout-align="center center" layout-margin=""
+              div class="md-body-1" layout-fill="" layout-align="center center" {{user.name}}
+              div class="md-caption" layout-fill="" layout-align="center center" {{user.email}}
+
+      md-content class="md-padding page-content"
+        ui-view

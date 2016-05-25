@@ -1,0 +1,8 @@
+div flex="" layout="column" layout-align="center center"
+  h1 Statistics
+
+  div
+    md-list-item ng-repeat="statistic in statistics" flex="" layout="row" ng-href="{{statistic.url}}"
+      ng-md-icon icon="timeline" class="list-icon"
+      p flex="" layout-fill=""
+        | {{statistic.name}} - {{statistic.last_update}}

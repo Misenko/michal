@@ -1,0 +1,5 @@
+div flex="" layout="column" layout-align="center center"
+  h3 Select module
+  div layout="row"
+    div ng-repeat='module in modules'
+      md-button class="md-raised md-primary" ng-click='selectModule(row, module.name)' {{module.title}}

@@ -1,0 +1,3 @@
+namespace: michal # Namespace used by redis for sidekiq jobs
+url: redis://localhost:6379 # URL of redis server, defaults to redis://localhost:6379
+password: # Password to access redis server if needed

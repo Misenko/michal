@@ -1,0 +1,8 @@
+type: opennebula
+endpoint: http://localhost:2633/RPC2
+username: oneadmin
+certificate:
+key:
+batch-size: 500
+data-processing-timeout: 3600
+backup-size: 5

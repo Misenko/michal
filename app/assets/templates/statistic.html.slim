@@ -1,0 +1,7 @@
+h1 ng-if="name" flex="" layout="column" layout-align="center center" {{name}}
+
+div ng-repeat='graph in graphs'
+  .graph ng-include='graph.url'
+  md-divider ng-if="!$last"
+
+h1 ng-if="message" flex="" layout="column" layout-align="center center" {{message}}
