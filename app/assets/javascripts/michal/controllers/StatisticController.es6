@@ -12,7 +12,7 @@ michal.controller("StatisticController", function($scope, $stateParams, Statisti
 
     var graphs = response.data.graphs;
     $scope.name = response.data.name;
-    for (graph of graphs){
+    for (var graph of graphs){
       graph.url = 'modules/' + graph.module + '_output.html';
       $scope.graphs.push(graph);
     }

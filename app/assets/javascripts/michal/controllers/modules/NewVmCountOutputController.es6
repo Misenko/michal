@@ -1,7 +1,7 @@
 michal.controller("NewVmCountOutputController", function($scope) {
   // creates a graph visualization according to parameters
   $scope.chartFromGraph = function(graph){
-    chart = {
+    var chart = {
       options: {
         chart: {
           type: 'line'
@@ -37,7 +37,7 @@ michal.controller("NewVmCountOutputController", function($scope) {
       size: {}
     }
 
-    for(serie of graph.series){
+    for(var serie of graph.series){
       // randomize graph color
       serie.color = chance.color({format: 'rgb'});
       chart.series.push(serie);

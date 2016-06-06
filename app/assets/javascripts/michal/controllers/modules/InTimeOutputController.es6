@@ -11,7 +11,7 @@ michal.controller("InTimeOutputController", function($scope) {
 
   // creates a graph visualization according to parameters
   $scope.chartFromGraph = function(graph){
-    chart = {
+    var chart = {
       options: {
         chart: {
           zoomType: 'x'
@@ -43,7 +43,7 @@ michal.controller("InTimeOutputController", function($scope) {
       size: {}
     }
 
-    for(serie of graph.series){
+    for(var serie of graph.series){
       // randomize graph color
       serie.color = chance.color({format: 'rgb'});
       chart.series.push(serie);
@@ -76,7 +76,7 @@ michal.controller("InTimeOutputController", function($scope) {
     if(graph.options && graph.options.multiple_axis){
       var axes = []
       var i = 0;
-      for(serie of graph.series){
+      for(var serie of graph.series){
         var axis = {
           title: {
             text: serie.name

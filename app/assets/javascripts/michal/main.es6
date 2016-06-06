@@ -94,7 +94,7 @@ michal.factory('Graphs', function(){
   var service = {};
 
   service.newGraph = function(row){
-    graph = {};
+    var graph = {};
     graphs.set(row.id, graph);
   };
 
@@ -107,7 +107,12 @@ michal.factory('Graphs', function(){
   };
 
   service.allGraphs = function(){
-    return [...graphs.values()];
+    var graphArray = [];
+    graphs.forEach(function(value, key) {
+        graphArray.push(value);
+    }, graphs);
+
+    return graphArray;
   };
 
   service.cleanGraphs = function(){
