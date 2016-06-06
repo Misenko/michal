@@ -10,7 +10,7 @@ michal.controller("OverallOutputController", function($scope) {
     return parseFloat((kb / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   }
   $scope.chartFromGraph = function(graph){
-    chart = {
+    var chart = {
       options: {
         chart: {
           type: 'pie'
@@ -35,7 +35,7 @@ michal.controller("OverallOutputController", function($scope) {
       }
     }
 
-    for(serie of graph.series){
+    for(var serie of graph.series){
       if(typeof serie['drilldown'] != 'undefined'){
         for(drilldown of serie['drilldown']){
           chart.options.drilldown.series.push(drilldown)

@@ -26,7 +26,7 @@ michal.controller("NewStatisticController", function($scope, $stateParams, Stati
 
   $scope.removeRow = function(row){
     Graphs.removeGraph(row);
-    index = $scope.rows.indexOf(row);
+    var index = $scope.rows.indexOf(row);
     $scope.rows.splice(index, 1);
   };
 
@@ -46,7 +46,7 @@ michal.controller("NewStatisticController", function($scope, $stateParams, Stati
     $scope.request.graphs = Graphs.allGraphs();
     // if periodic selected checks whether it's possible
     if($scope.request.periodic){
-      for(graph of $scope.request.graphs){
+      for(var graph of $scope.request.graphs){
         if(typeof graph['last'] == 'undefined' || graph['last'] == null){
           $scope.error = true;
           return;
@@ -56,7 +56,7 @@ michal.controller("NewStatisticController", function($scope, $stateParams, Stati
     $scope.error = false;
 
     // converts dates into UNIXC epoch format
-    for(graph of $scope.request.graphs){
+    for(var graph of $scope.request.graphs){
       if(typeof graph['from'] != 'undefined'){
         graph.from = moment(graph.from).unix()
       }
@@ -67,7 +67,7 @@ michal.controller("NewStatisticController", function($scope, $stateParams, Stati
     }
 
     console.log($scope.request)
-    params = {statistic: $scope.request, authenticity_token: $('meta[name="csrf-token"]').attr('content')}
+    var params = {statistic: $scope.request, authenticity_token: $('meta[name="csrf-token"]').attr('content')}
     Statistics.post(params).then(function(response) {
       $scope.statisticUrl = response.data.url
       $scope.sent = true;
