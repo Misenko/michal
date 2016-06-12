@@ -20,10 +20,19 @@ class Api::V1::StatisticsController < ApplicationController
     end
   end
 
-  def index
+  def periodic
     respond_to do |format|
       format.json do
         @statistics = Statistic.where(periodic: true)
+        render json: @statistics.map { |statistic| {name: statistic.name, url: statistic.url, last_update: statistic.last_update.strftime('%d.%m.%Y')} }
+      end
+    end
+  end
+
+  def index
+    respond_to do |format|
+      format.json do
+        @statistics = Statistic.where(user: current_user)
         render json: @statistics.map { |statistic| {name: statistic.name, url: statistic.url, last_update: statistic.last_update.strftime('%d.%m.%Y')} }
       end
     end
@@ -40,6 +49,7 @@ class Api::V1::StatisticsController < ApplicationController
         @statistic.url = statistic_url(@statistic.resource_id)
         @statistic.ready = false
         @statistic.graphs.each { |graph| convert_time! graph }
+        @statistic.user = current_user
 
         @statistic.save && current_user.add_role(:owner, @statistic)
 

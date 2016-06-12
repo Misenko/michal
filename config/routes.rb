@@ -11,7 +11,9 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :users, only: [:index]
-      resources :statistics, only: [:show, :create, :index], param: :resource_id
+      resources :statistics, only: [:show, :create, :index], param: :resource_id do
+        get 'periodic', on: :collection
+      end
       resources :modules, only: [:show, :index], param: :name
       resources :sources, only: [] do
         get 'list' => 'sources#list', on: :collection

@@ -1,5 +1,5 @@
-michal.controller("StatisticsController", function($scope, $stateParams, Statistics) {
-  Statistics.getList().then(function(response) {
+michal.controller("PeriodicStatisticsController", function($scope, $stateParams, Statistics) {
+  Statistics.periodic().then(function(response) {
     console.log(response);
 
     if(response.status != 200){
