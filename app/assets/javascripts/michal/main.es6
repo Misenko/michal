@@ -29,10 +29,15 @@ michal.config(function($stateProvider, $urlRouterProvider, $locationProvider) {
     url: '/',
     templateUrl: 'index.html'
   })
-  .state('statistics' ,{
+  .state('myStatistics' ,{
     url: '/statistics',
-    templateUrl: 'statistics.html',
-    controller: 'StatisticsController'
+    templateUrl: 'my_statistics.html',
+    controller: 'MyStatisticsController'
+  })
+  .state('periodicStatistics' ,{
+    url: '/statistics/periodic',
+    templateUrl: 'periodic_statistics.html',
+    controller: 'PeriodicStatisticsController'
   })
   .state('newStatistic' ,{
     url: '/statistics/new',
@@ -70,7 +75,12 @@ michal.factory('Modules', function(Restangular) {
 
 // creates a service for statistics API in backend
 michal.factory('Statistics', function(Restangular) {
-  return Restangular.service('statistics');
+  return Restangular.withConfig(function(config){
+    config.addElementTransformer('statistics',true,function(worker){
+      worker.addRestangularMethod('periodic','get', 'periodic');
+      return worker;
+    });
+  }).service('statistics');
 });
 
 // creates a service for users API in backend

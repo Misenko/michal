@@ -9,7 +9,7 @@ class OpenNebulaWorker
 
   attr_reader :open_nebula_data_miner, :db_client, :collection
 
-  sidekiq_options queue: Settings[:sidekiq][:queues].first
+  sidekiq_options queue: Settings[:sidekiq][:queues].first, retry: 2, dead: false
 
   def perform(opennebula, timestamp, token)
     @open_nebula_data_miner = Michal::DataLoaders::OpenNebula.new(opennebula, token, logger)
