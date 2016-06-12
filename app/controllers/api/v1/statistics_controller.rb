@@ -23,8 +23,7 @@ class Api::V1::StatisticsController < ApplicationController
   def periodic
     respond_to do |format|
       format.json do
-        @statistics = Statistic.where(periodic: true)
-        render json: @statistics.map { |statistic| {name: statistic.name, url: statistic.url, last_update: statistic.last_update.strftime('%d.%m.%Y')} }
+        render json: statistic_map(periodic: true)
       end
     end
   end
@@ -32,8 +31,7 @@ class Api::V1::StatisticsController < ApplicationController
   def index
     respond_to do |format|
       format.json do
-        @statistics = Statistic.where(user: current_user)
-        render json: @statistics.map { |statistic| {name: statistic.name, url: statistic.url, last_update: statistic.last_update.strftime('%d.%m.%Y')} }
+        render json: statistic_map(user: current_user)
       end
     end
   end
@@ -73,6 +71,19 @@ class Api::V1::StatisticsController < ApplicationController
   end
 
   private
+
+  def statistic_map(where={})
+    @statistics = Statistic.where(where)
+    @statistics.map do |statistic|
+      last_update = statistic.last_update
+      if last_update
+        last_update = last_update.strftime('%d.%m.%Y')
+      else
+        last_update = "pending"
+      end
+      {name: statistic.name, url: statistic.url, last_update: last_update}
+    end
+  end
 
   def set_statistic
     @statistic = Statistic.find_by resource_id: params[:resource_id]
