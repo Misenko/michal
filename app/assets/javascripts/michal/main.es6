@@ -41,9 +41,7 @@ michal.config(function($stateProvider, $urlRouterProvider, $locationProvider) {
   })
   .state('newStatistic' ,{
     url: '/statistics/new',
-    templateUrl: function ($stateParams){
-      return 'new_statistic.html';
-    },
+    templateUrl: 'new_statistic.html',
     controller: 'NewStatisticController',
     redirectTo: 'index',
   })

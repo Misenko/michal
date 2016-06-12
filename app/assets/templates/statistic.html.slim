@@ -5,3 +5,7 @@ div ng-repeat='graph in graphs'
   md-divider ng-if="!$last"
 
 h1 ng-if="message" flex="" layout="column" layout-align="center center" {{message}}
+
+div ng-if="(periodic && user.admin) || (!periodic)" layout="row" layout-align="start start"
+  md-button class="md-fab" aria-label="Delete" ng-click='delete()'
+    ng-md-icon class="round-button" icon="delete" size="30" layout-align="center center"

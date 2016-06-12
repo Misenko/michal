@@ -1,5 +1,5 @@
 class Api::V1::StatisticsController < ApplicationController
-  before_action :set_statistic, only: [:show]
+  before_action :set_statistic, only: [:show, :destroy]
 
   def show
     respond_to do |format|
@@ -16,6 +16,21 @@ class Api::V1::StatisticsController < ApplicationController
           logger.debug("still processing")
           render json: { message: 'Your statistic is not ready yet, we\'re still looking for the right data'}.to_json, status: :partial_content
         end
+      end
+    end
+  end
+
+  def destroy
+    respond_to do |format|
+      format.json do
+        logger.debug(@statistic.inspect)
+        if @statistic.nil?
+          render json: { message: 'No such statistic' }.to_json, status: :not_found
+          return
+        end
+
+        @statistic.destroy
+        render json: { message: 'Destroyed' }.to_json
       end
     end
   end
@@ -81,7 +96,7 @@ class Api::V1::StatisticsController < ApplicationController
       else
         last_update = "pending"
       end
-      {name: statistic.name, url: statistic.url, last_update: last_update}
+      {name: statistic.name, url: statistic.url, last_update: last_update, resource_id: statistic.resource_id}
     end
   end
 
