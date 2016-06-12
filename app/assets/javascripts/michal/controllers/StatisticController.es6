@@ -1,4 +1,4 @@
-michal.controller("StatisticController", function($scope, $stateParams, Statistics) {
+michal.controller("StatisticController", function($scope, $stateParams, Statistics, $state) {
   $scope.statisticId = $stateParams.statisticId;
   $scope.graphs = [];
 
@@ -12,6 +12,7 @@ michal.controller("StatisticController", function($scope, $stateParams, Statisti
 
     var graphs = response.data.graphs;
     $scope.name = response.data.name;
+    $scope.periodic = response.data.periodic;
     for (var graph of graphs){
       graph.url = 'modules/' + graph.module + '_output.html';
       $scope.graphs.push(graph);
@@ -22,4 +23,14 @@ michal.controller("StatisticController", function($scope, $stateParams, Statisti
     console.log(response);
     $scope.message = response.data.message;
   });
+
+  $scope.delete = function(){
+    var params = {authenticity_token: $('meta[name="csrf-token"]').attr('content')}
+    Statistics.one($scope.statisticId).remove(params).then(function(response) {
+      $state.go('myStatistics');
+    }, function(response){
+      console.log("ERROR");
+      console.log(response);
+    });
+  };
 });

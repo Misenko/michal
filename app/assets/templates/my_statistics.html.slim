@@ -2,7 +2,10 @@ div flex="" layout="column" layout-align="center center"
   h1 My Statistics
 
   div
-    md-list-item ng-repeat="statistic in statistics" flex="" layout="row" ng-href="{{statistic.url}}"
-      ng-md-icon icon="timeline" class="list-icon"
-      p flex="" layout-fill=""
-        | {{statistic.name}} - {{statistic.last_update}}
+    md-list-item ng-repeat="statistic in statistics" flex="" layout="row"
+      md-button ng-href="{{statistic.url}}" class="_md-no-style" flex="grow" layout="row"
+        ng-md-icon icon="timeline" class="list-icon"
+        p flex="" layout-fill=""
+          | {{statistic.name}} - {{statistic.last_update}}
+      md-button class="md-icon-button" flex="nogrow" layout="row" ng-click="delete(statistic.resource_id)"
+        ng-md-icon icon="delete" class="list-icon"

@@ -14,13 +14,13 @@ html
             h3 Multi-Input Cloud Hardware Accounting Layer
           span flex=""
           div class="toolbar-buttons"
-            md-button aria-label="New Statistic" ng-href="/statistics/new"
+            md-button aria-label="New Statistic" ng-href="/statistics/new" data-ui-sref="newStatistic" data-ui-sref-opts="{reload: true}"
               ng-md-icon icon="add" class="button-icon" style="margin-bottom: 7px" size="30" layout-align="center center"
               |New Statistic
-            md-button aria-label="Statistics" ng-href="/statistics"
+            md-button aria-label="My Statistics" ng-href="/statistics" data-ui-sref="myStatistics" data-ui-sref-opts="{reload: true}"
               ng-md-icon icon="timeline" class="button-icon" layout-align="center center"
               |My Statistics
-            md-button aria-label="Statistics" ng-href="/statistics/periodic"
+            md-button aria-label="Periodic Statistics" ng-href="/statistics/periodic" data-ui-sref="periodicStatistics" data-ui-sref-opts="{reload: true}"
               ng-md-icon icon="timeline" class="button-icon" layout-align="center center"
               |Periodic Statistics
           div layout="row" layout-align="start center"

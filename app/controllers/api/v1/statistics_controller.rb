@@ -1,5 +1,5 @@
 class Api::V1::StatisticsController < ApplicationController
-  before_action :set_statistic, only: [:show]
+  before_action :set_statistic, only: [:show, :destroy]
 
   def show
     respond_to do |format|
@@ -20,11 +20,25 @@ class Api::V1::StatisticsController < ApplicationController
     end
   end
 
+  def destroy
+    respond_to do |format|
+      format.json do
+        logger.debug(@statistic.inspect)
+        if @statistic.nil?
+          render json: { message: 'No such statistic' }.to_json, status: :not_found
+          return
+        end
+
+        @statistic.destroy
+        render json: { message: 'Destroyed' }.to_json
+      end
+    end
+  end
+
   def periodic
     respond_to do |format|
       format.json do
-        @statistics = Statistic.where(periodic: true)
-        render json: @statistics.map { |statistic| {name: statistic.name, url: statistic.url, last_update: statistic.last_update.strftime('%d.%m.%Y')} }
+        render json: statistic_map(periodic: true)
       end
     end
   end
@@ -32,8 +46,7 @@ class Api::V1::StatisticsController < ApplicationController
   def index
     respond_to do |format|
       format.json do
-        @statistics = Statistic.where(user: current_user)
-        render json: @statistics.map { |statistic| {name: statistic.name, url: statistic.url, last_update: statistic.last_update.strftime('%d.%m.%Y')} }
+        render json: statistic_map(user: current_user)
       end
     end
   end
@@ -73,6 +86,19 @@ class Api::V1::StatisticsController < ApplicationController
   end
 
   private
+
+  def statistic_map(where={})
+    @statistics = Statistic.where(where)
+    @statistics.map do |statistic|
+      last_update = statistic.last_update
+      if last_update
+        last_update = last_update.strftime('%d.%m.%Y')
+      else
+        last_update = "pending"
+      end
+      {name: statistic.name, url: statistic.url, last_update: last_update, resource_id: statistic.resource_id}
+    end
+  end
 
   def set_statistic
     @statistic = Statistic.find_by resource_id: params[:resource_id]
