@@ -7,7 +7,7 @@ class RequestWorker
 
   attr_reader :db_client
 
-  sidekiq_options queue: Settings[:sidekiq][:queues].first
+  sidekiq_options queue: Settings[:sidekiq][:queues].first, retry: 2, dead: false
 
   def perform(request_document_id, graph_index, serie_index, waiting_document_id)
     @db_client = Michal::DbClient.new logger
