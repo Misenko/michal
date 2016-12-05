@@ -6,7 +6,7 @@ class UsersWorker < OpenNebulaWorker
 
     pool = open_nebula_data_miner.load_users
     pool.each do |user|
-      store user
+      store OneUser, user
     end
   end
 end

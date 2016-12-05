@@ -6,7 +6,7 @@ class VirtualMachinesWorker < OpenNebulaWorker
 
     ids.each do |id|
       vm = open_nebula_data_miner.load_vm id
-      store vm
+      store OneVirtualMachine, vm
     end
   end
 end

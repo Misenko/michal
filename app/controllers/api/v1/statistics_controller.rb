@@ -55,7 +55,6 @@ class Api::V1::StatisticsController < ApplicationController
     respond_to do |format|
       format.json do
         logger.debug params
-        db_client = Michal::DbClient.new logger
         @statistic = Statistic.new(statistic_params)
 
         @statistic.resource_id = SecureRandom.hex
@@ -69,7 +68,12 @@ class Api::V1::StatisticsController < ApplicationController
         @statistic.graphs.each_with_index do |graph, graph_index|
           graph_h = graph.deep_symbolize_keys
           graph_h[:series].each_with_index do |serie, serie_index|
-            waiting_document_id = db_client.write_one(:waiting, {request_id: @statistic.id, graph: graph_index, serie: serie_index}).to_s
+            waiting = Waiting.new
+            waiting.graph = graph_index
+            waiting.serie = serie_index
+            waiting.statistic = @statistic
+            waiting.save
+            waiting_document_id = waiting.id
             RequestWorker.perform_async(@statistic.id.to_s, graph_index, serie_index, waiting_document_id)
           end
         end

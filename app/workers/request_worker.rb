@@ -5,13 +5,9 @@ require 'sidekiq'
 class RequestWorker
   include ::Sidekiq::Worker
 
-  attr_reader :db_client
-
   sidekiq_options queue: Settings[:sidekiq][:queues].first, retry: 2, dead: false
 
   def perform(request_document_id, graph_index, serie_index, waiting_document_id)
-    @db_client = Michal::DbClient.new logger
-
     logger.debug "Options: #{[request_document_id, graph_index, serie_index]}"
     logger.debug "Settings: #{Settings}"
 
@@ -32,20 +28,16 @@ class RequestWorker
   end
 
   def store_data(data, request_document_id, graph_index, serie_index)
-    update_hash = prepare_update(data, graph_index, serie_index)
-    db_client.update(:statistics, {_id: BSON::ObjectId(request_document_id)}, {'$set' => update_hash}, { upsert: true })
+    request = Statistic.find(request_document_id)
+    request.graphs[graph_index][:series][serie_index].merge!(data)
+    request.save
   end
 
   def load_request(request_document_id)
-    db_client.read_one(:statistics, {_id: BSON::ObjectId(request_document_id)})
+    Statistic.find(request_document_id)
   end
 
   def remove_waiting(waiting_document_id)
-    db_client.delete_one(:waiting, {_id: BSON::ObjectId(waiting_document_id)})
-  end
-
-  def prepare_update(data, graph_index, serie_index)
-    prefix = "graphs.#{graph_index}.series.#{serie_index}."
-    Hash[data.map{ |k,v| ["#{prefix}#{k}", v]}]
+    Waiting.find(waiting_document_id).destroy
   end
 end
