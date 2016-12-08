@@ -37,15 +37,28 @@ class Michal::Periodic::OpenNebulaDataUpdater
     ondm = Michal::DataLoaders::OpenNebula.new(opennebula, token, logger)
 
     vms = ondm.load_vms(start_vm, Settings[:sources][opennebula][:'batch-size'])
+    done_vm_ids = copy_done_vms
     until vms.count == 0
       vms.each { |vm| ids << vm.id }
       start_vm = ids.last + 1
 
-      batch << VirtualMachinesWorker.perform_async(opennebula, timestamp, token, ids)
+      batch << VirtualMachinesWorker.perform_async(opennebula, timestamp, token, done_vm_ids, ids)
 
       ids.clear
       vms = ondm.load_vms(start_vm, Settings[:sources][opennebula][:'batch-size'])
     end
+  end
+
+  def copy_done_vms
+    collection = Collection.where(name: opennebula).first
+    return [] unless collection
+
+    ids = OneVirtualMachine.with(collection: collection.current).where('VM.STATE' => 6).map do |vm|
+      vm.clone.with(collection: "#{opennebula}-#{timestamp}").save
+      vm['VM']['ID'].to_i
+    end
+
+    ids.sort
   end
 
   # Updates user data
