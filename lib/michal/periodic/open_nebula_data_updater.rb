@@ -19,6 +19,7 @@ class Michal::Periodic::OpenNebulaDataUpdater
     update_users
     update_datastores
     update_hosts
+    update_clusters
 
     # waits for the sidekiq workers to finish
     batch.wait
@@ -77,6 +78,12 @@ class Michal::Periodic::OpenNebulaDataUpdater
   #
   def update_hosts
     batch << HostsWorker.perform_async(opennebula, timestamp, token)
+  end
+
+  # Updates cluster data
+  #
+  def update_clusters
+    batch << ClustersWorker.perform_async(opennebula, timestamp, token)
   end
 
   # Changes old data collection for new one
