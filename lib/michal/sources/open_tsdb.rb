@@ -9,7 +9,8 @@ class Michal::Sources::OpenTsdb < Michal::Sources::Base
     cpu_load: 'libvirt.vm.cpu.load',
     allocated_vcpu: 'libvirt.vm.max.vcpus',
     allocated_memory: 'libvirt.vm.max.memory',
-    used_memory: 'libvirt.vm.memory'
+    used_memory: 'libvirt.vm.memory',
+    available_cpu: 'cpustat.count'
   }
 
   STATUSES = {
