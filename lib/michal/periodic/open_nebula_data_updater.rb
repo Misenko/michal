@@ -1,13 +1,12 @@
 # Updates data from OpenNebula sources
 #
 class Michal::Periodic::OpenNebulaDataUpdater
-  attr_reader :batch, :opennebula, :timestamp, :token, :db_client
+  attr_reader :batch, :opennebula, :timestamp, :token
 
   def initialize(opennebula)
     @opennebula = opennebula
     @batch = Michal::Sidekiq::Batch.new Settings[:sources][opennebula][:'data-processing-timeout']
     @timestamp = Time.now.to_i
-    @db_client = Michal::DbClient.new logger
   end
 
   # Updates all data
@@ -38,15 +37,28 @@ class Michal::Periodic::OpenNebulaDataUpdater
     ondm = Michal::DataLoaders::OpenNebula.new(opennebula, token, logger)
 
     vms = ondm.load_vms(start_vm, Settings[:sources][opennebula][:'batch-size'])
+    done_vm_ids = copy_done_vms
     until vms.count == 0
       vms.each { |vm| ids << vm.id }
       start_vm = ids.last + 1
 
-      batch << VirtualMachinesWorker.perform_async(opennebula, timestamp, token, ids)
+      batch << VirtualMachinesWorker.perform_async(opennebula, timestamp, token, done_vm_ids, ids)
 
       ids.clear
       vms = ondm.load_vms(start_vm, Settings[:sources][opennebula][:'batch-size'])
     end
+  end
+
+  def copy_done_vms
+    collection = Collection.where(name: opennebula).first
+    return [] unless collection
+
+    ids = OneVirtualMachine.with(collection: collection.current).where('VM.STATE' => 6).map do |vm|
+      vm.clone.with(collection: "#{opennebula}-#{timestamp}").save
+      vm['VM']['ID'].to_i
+    end
+
+    ids.sort
   end
 
   # Updates user data
@@ -77,26 +89,23 @@ class Michal::Periodic::OpenNebulaDataUpdater
   # Backups current data collection
   #
   def backup_current
-    result = db_client.read_many(:collections, { name: opennebula, older: { '$size' => Settings[:sources][opennebula][:'backup-size'] } })
-    remove_oldest unless result.count == 0
+    num_of_older = Collection.where({ name: opennebula, older: { '$size' => Settings[:sources][opennebula][:'backup-size'] } }).count
+    remove_oldest unless num_of_older == 0
 
-    document = db_client.read_one(:collections, { name: opennebula })
-
-    db_client.update(:collections, { name: opennebula }, {'$push' => { older: document[:current]}}, { upsert: true }) if document
+    document = Collection.where(name: opennebula).first
+    Collection.where(name: opennebula).push(older: document[:current]) if document # upsert?
   end
 
   # Sets current collection to newly obtained data
   #
   def update_current
-    db_client.update(:collections, { name: opennebula }, {'$set' => { current: "#{opennebula}-#{timestamp}"}}, { upsert: true })
+    Collection.where(name: opennebula).first_or_create.update(current: "#{opennebula}-#{timestamp}") # upsert?
   end
 
   # Removes the oldes data collection if more then 5 collections are stored
   #
   def remove_oldest
-    document = db_client.update_and_return(:collections, { name: opennebula }, {'$pop' => { older: -1}})
-    oldest = document[:older].first
-
-    db_client.drop_collection(oldest)
+    oldest = Collection.where(name: opennebula).pop(older: -1)
+    Collection.mongo_client[oldest].drop
   end
 end

@@ -6,7 +6,7 @@ class DatastoresWorker < OpenNebulaWorker
 
     pool = open_nebula_data_miner.load_datastores
     pool.each do |datastore|
-      store datastore
+      store OneDatastore, datastore
     end
   end
 end

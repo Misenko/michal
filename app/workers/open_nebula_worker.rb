@@ -7,13 +7,12 @@ class OpenNebulaWorker
   include ::Sidekiq::Worker
   include ::Sidekiq::Status::Worker
 
-  attr_reader :open_nebula_data_miner, :db_client, :collection
+  attr_reader :open_nebula_data_miner, :collection
 
   sidekiq_options queue: Settings[:sidekiq][:queues].first, retry: 2, dead: false
 
   def perform(opennebula, timestamp, token)
     @open_nebula_data_miner = Michal::DataLoaders::OpenNebula.new(opennebula, token, logger)
-    @db_client = Michal::DbClient.new logger
     @collection = "#{opennebula}-#{timestamp}"
   end
 
@@ -22,9 +21,12 @@ class OpenNebulaWorker
   # Stores element into DB
   #
   # @param [OpenNebula::Element] element
-  def store(element)
-    element_hash = convert(element)
-    db_client.write_one(collection, element_hash)
+  def store(clazz, data)
+    element_hash = convert(data)
+
+    object = clazz.new
+    object.data = element_hash.values.first
+    object.with(collection: collection).save
   end
 
   # Converts element from its xml form to json

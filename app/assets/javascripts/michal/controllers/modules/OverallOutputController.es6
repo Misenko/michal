@@ -37,7 +37,7 @@ michal.controller("OverallOutputController", function($scope) {
 
     for(var serie of graph.series){
       if(typeof serie['drilldown'] != 'undefined'){
-        for(drilldown of serie['drilldown']){
+        for(var drilldown of serie['drilldown']){
           chart.options.drilldown.series.push(drilldown)
         }
       }

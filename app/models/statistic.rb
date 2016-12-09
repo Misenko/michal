@@ -14,6 +14,7 @@ class Statistic
   field :name, type: String
 
   belongs_to :user
+  has_many :waitings
 
   index({ resource_id: 1 }, { unique: true })
 

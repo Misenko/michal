@@ -6,7 +6,7 @@ class HostsWorker < OpenNebulaWorker
 
     pool = open_nebula_data_miner.load_hosts
     pool.each do |host|
-      store host
+      store OneHost, host
     end
   end
 end
