@@ -123,7 +123,6 @@ class Michal::Sources::OpenNebula < Michal::Sources::Base
 
   def vms_with_clusters(from, to, clusters)
     cluster_ids = OneCluster.with(collection: collection).in('CLUSTER.NAME': clusters).map { |document| document['CLUSTER']['ID'] }
-    logger.debug "Clusters: #{cluster_ids.inspect}"
     project_operator = { "$project" =>{"VM.DEPLOY_ID" => true, "VM.STATE" => true, "first_history" => { "$slice" => ["$VM.HISTORY_RECORDS.HISTORY", 1] }, "last_history" => {"$slice" => ["$VM.HISTORY_RECORDS.HISTORY", -1] },"VM" => {"HISTORY_RECORDS" => {"HISTORY" => {"RSTIME" => 1,"RETIME" => 1}}}}}
     match_operator = {"$match" => {"VM.DEPLOY_ID" => {"$ne" => nil}, "first_history.RSTIME" => {"$lte" => to}, "$and" => [{"$or" => [{"last_history.RETIME" => {"$gte" => from}}, {"VM.STATE" => {"$ne" => 6}}]}, {"$or" => [{"last_history.RETIME" => 0},{"VM.STATE" => 6}]}],"last_history.CID" => {"$in" => cluster_ids}}}
     another_project_operator = {"$project" => {"VM.DEPLOY_ID" => true, "VM.HISTORY_RECORDS" => true}}
@@ -133,7 +132,6 @@ class Michal::Sources::OpenNebula < Michal::Sources::Base
 
   def map_groups_vms_with_clusters(from, to, clusters)
     cluster_ids = OneCluster.with(collection: collection).in('CLUSTER.NAME': clusters).map { |document| document['CLUSTER']['ID'] }
-    logger.debug "Clusters: #{cluster_ids.inspect}"
     project_operator = { "$project" =>{"VM.DEPLOY_ID" => true, "VM.STATE" => true, "VM.GNAME" => true, "first_history" => { "$slice" => ["$VM.HISTORY_RECORDS.HISTORY", 1] }, "last_history" => {"$slice" => ["$VM.HISTORY_RECORDS.HISTORY", -1] },"VM" => {"HISTORY_RECORDS" => {"HISTORY" => {"RSTIME" => 1,"RETIME" => 1}}}}}
     match_operator = {"$match" => {"VM.DEPLOY_ID" => {"$ne" => nil}, "first_history.RSTIME" => {"$lte" => to}, "$and" => [{"$or" => [{"last_history.RETIME" => {"$gte" => from}}, {"VM.STATE" => {"$ne" => 6}}]}, {"$or" => [{"last_history.RETIME" => 0},{"VM.STATE" => 6}]}],"last_history.CID" => {"$in" => cluster_ids}}}
     another_project_operator = {"$project" => {"VM.DEPLOY_ID" => true, "VM.GNAME" => true, "VM.HISTORY_RECORDS" => true}}
@@ -144,12 +142,23 @@ class Michal::Sources::OpenNebula < Michal::Sources::Base
 
   def map_users_vms_with_clusters(from, to, clusters)
     cluster_ids = OneCluster.with(collection: collection).in('CLUSTER.NAME': clusters).map { |document| document['CLUSTER']['ID'] }
-    logger.debug "Clusters: #{cluster_ids.inspect}"
     project_operator = { "$project" =>{"VM.DEPLOY_ID" => true, "VM.STATE" => true, "VM.UNAME" => true, "first_history" => { "$slice" => ["$VM.HISTORY_RECORDS.HISTORY", 1] }, "last_history" => {"$slice" => ["$VM.HISTORY_RECORDS.HISTORY", -1] },"VM" => {"HISTORY_RECORDS" => {"HISTORY" => {"RSTIME" => 1,"RETIME" => 1}}}}}
     match_operator = {"$match" => {"VM.DEPLOY_ID" => {"$ne" => nil}, "first_history.RSTIME" => {"$lte" => to}, "$and" => [{"$or" => [{"last_history.RETIME" => {"$gte" => from}}, {"VM.STATE" => {"$ne" => 6}}]}, {"$or" => [{"last_history.RETIME" => 0},{"VM.STATE" => 6}]}],"last_history.CID" => {"$in" => cluster_ids}}}
     another_project_operator = {"$project" => {"VM.DEPLOY_ID" => true, "VM.UNAME" => true, "VM.HISTORY_RECORDS" => true}}
     group_operator = {"$group" => {"_id" => "$VM.UNAME", "vms" => {"$addToSet" => "$VM"}}}
 
     OneVirtualMachine.with(collection: collection).collection.aggregate([project_operator, match_operator, another_project_operator, group_operator])
+  end
+
+  def map_vms_runtime_with_clusters(from, to, clusters)
+    cluster_ids = OneCluster.with(collection: collection).in('CLUSTER.NAME': clusters).map { |document| document['CLUSTER']['ID'] }
+    project_operator = { "$project" =>{"VM.DEPLOY_ID" => true, "VM.STATE" => true, "VM.UNAME" => true, "first_history" => { "$slice" => ["$VM.HISTORY_RECORDS.HISTORY", 1] }, "last_history" => {"$slice" => ["$VM.HISTORY_RECORDS.HISTORY", -1] },"VM" => {"HISTORY_RECORDS" => {"HISTORY" => {"RSTIME" => 1,"RETIME" => 1}}}}}
+    match_operator = {"$match" => {"VM.DEPLOY_ID" => {"$ne" => nil}, "first_history.RSTIME" => {"$lte" => to}, "$and" => [{"$or" => [{"last_history.RETIME" => {"$gte" => from}}, {"VM.STATE" => {"$ne" => 6}}]}, {"$or" => [{"last_history.RETIME" => 0},{"VM.STATE" => 6}]}],"last_history.CID" => {"$in" => cluster_ids}}}
+    unwind_operator = {"$unwind" => "$VM.HISTORY_RECORDS.HISTORY"}
+    group_operator = {"$group" => {"_id" => "$VM.DEPLOY_ID", "diffs" => {"$addToSet" => {"$subtract" => [{"$cond" => { "if" => {"$ne" => ["$VM.HISTORY_RECORDS.HISTORY.RETIME",0]}, "then" => "$VM.HISTORY_RECORDS.HISTORY.RETIME", "else" => Time.new.to_i}}, "$VM.HISTORY_RECORDS.HISTORY.RSTIME"]}}}}
+    another_unwind_operator = {"$unwind" => "$diffs"}
+    another_group_operator = {"$group" => {"_id" => "$_id", "lifetime" => {"$sum":"$diffs"}}}
+
+    OneVirtualMachine.with(collection: collection).collection.aggregate([project_operator, match_operator, unwind_operator, group_operator, another_unwind_operator, another_group_operator])
   end
 end
