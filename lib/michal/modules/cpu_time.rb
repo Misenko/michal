@@ -75,7 +75,7 @@ class Michal::Modules::CpuTime < Michal::Modules::Base
     result_map = Hash.new(0)
 
     sources[:opennebula].each do |opennebula|
-      entities = opennebula.send("map_#{parameters[:entity_type][:name]}_vms_with_clusters".to_sym, request_from, request_to, Settings[:sources][opennebula.name.to_sym][:clusters])
+      entities = opennebula.send("map_#{parameters[:entity_type][:name]}_vms".to_sym, request_from, request_to, Settings[:sources][opennebula.name.to_sym][:clusters])
       entities.each do |entity|
         entity_name = entity['_id']
 
@@ -115,7 +115,7 @@ class Michal::Modules::CpuTime < Michal::Modules::Base
     result_map = Hash.new(0)
 
     sources[:opennebula].each do |opennebula|
-      vms = opennebula.vms_with_clusters(request_from, request_to, Settings[:sources][opennebula.name.to_sym][:clusters])
+      vms = opennebula.vms(request_from, request_to, Settings[:sources][opennebula.name.to_sym][:clusters])
       vms.each do |vm|
         vm['VM']['HISTORY_RECORDS']['HISTORY'].each do |history|
           next if (history['RSTIME'] > request_to || history['RETIME'] < request_from)

@@ -61,7 +61,7 @@ class Michal::Modules::Lifetime < Michal::Modules::Base
     result_map = Hash.new(0)
 
     sources[:opennebula].each do |opennebula|
-      vms = opennebula.map_vms_runtime_with_clusters(parameters[:from], parameters[:to], Settings[:sources][opennebula.name.to_sym][:clusters])
+      vms = opennebula.map_vms_runtime(parameters[:from], parameters[:to], Settings[:sources][opennebula.name.to_sym][:clusters])
       vms.each do |vm|
         TIME_BLOCKS.each do |timeblock|
           if timeblock[:condition].call(vm['lifetime'])
@@ -83,7 +83,7 @@ class Michal::Modules::Lifetime < Michal::Modules::Base
     result_map = Hash.new(0)
 
     sources[:opennebula].each do |opennebula|
-      vms = opennebula.vms_with_clusters(parameters[:from], parameters[:to], Settings[:sources][opennebula.name.to_sym][:clusters])
+      vms = opennebula.vms(parameters[:from], parameters[:to], Settings[:sources][opennebula.name.to_sym][:clusters])
       vms.each do |vm|
         vm['VM']['HISTORY_RECORDS']['HISTORY'].each do |history|
           next if (history['RSTIME'] > request_to || history['RETIME'] < request_from)
@@ -105,7 +105,7 @@ class Michal::Modules::Lifetime < Michal::Modules::Base
     end
 
     sources[:opennebula].each do |opennebula|
-      vms = opennebula.map_vms_runtime_with_clusters(request_from, request_to, Settings[:sources][opennebula.name.to_sym][:clusters])
+      vms = opennebula.map_vms_runtime(request_from, request_to, Settings[:sources][opennebula.name.to_sym][:clusters])
       vms.each do |vm|
         TIME_BLOCKS.each do |timeblock|
           if timeblock[:condition].call(vm['lifetime'])
