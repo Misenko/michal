@@ -40,74 +40,74 @@ class Michal::Sources::OpenNebula < Michal::Sources::Base
     OneVirtualMachine.with(collection: collection).collection.aggregate([match_operator, group_operator])
   end
 
-  # Returns map of users and sum of CPUs within time range
+  # # Returns map of users and sum of CPUs within time range
+  # #
+  # # @param [Fixnum] from date in UNIX epoch format
+  # # @param [Fixnum] to date in UNIX epoch format
+  # # @return [Hash] map of users and sum of CPUs
+  # def map_user_cpu(from, to)
+  #   match_operator = {:$match => {'VM.DEPLOY_ID' => { :$ne => nil },'VM.HISTORY_RECORDS.HISTORY.RSTIME' => {'$lte' => to}, '$or' => [{'VM.HISTORY_RECORDS.HISTORY.RETIME' => {'$gte' => from}}, {'VM.HISTORY_RECORDS.HISTORY.RETIME' => 0}]}}
+  #   group_operator = {:$group => {_id: "$VM.UNAME", cpu: { :$sum => "$VM.TEMPLATE.CPU" } } }
+  #   OneVirtualMachine.with(collection: collection).collection.aggregate([match_operator, group_operator])
+  # end
   #
-  # @param [Fixnum] from date in UNIX epoch format
-  # @param [Fixnum] to date in UNIX epoch format
-  # @return [Hash] map of users and sum of CPUs
-  def map_user_cpu(from, to)
-    match_operator = {:$match => {'VM.DEPLOY_ID' => { :$ne => nil },'VM.HISTORY_RECORDS.HISTORY.RSTIME' => {'$lte' => to}, '$or' => [{'VM.HISTORY_RECORDS.HISTORY.RETIME' => {'$gte' => from}}, {'VM.HISTORY_RECORDS.HISTORY.RETIME' => 0}]}}
-    group_operator = {:$group => {_id: "$VM.UNAME", cpu: { :$sum => "$VM.TEMPLATE.CPU" } } }
-    OneVirtualMachine.with(collection: collection).collection.aggregate([match_operator, group_operator])
-  end
-
-  # Returns map of groups and sum of CPUs within time range
+  # # Returns map of groups and sum of CPUs within time range
+  # #
+  # # @param [Fixnum] from date in UNIX epoch format
+  # # @param [Fixnum] to date in UNIX epoch format
+  # # @return [Hash] map of groups and sum of CPUs
+  # def map_group_cpu(from, to)
+  #   match_operator = {:$match => {'VM.DEPLOY_ID' => { :$ne => nil },'VM.HISTORY_RECORDS.HISTORY.RSTIME' => {'$lte' => to}, '$or' => [{'VM.HISTORY_RECORDS.HISTORY.RETIME' => {'$gte' => from}}, {'VM.HISTORY_RECORDS.HISTORY.RETIME' => 0}]}}
+  #   group_operator = {:$group => {_id: "$VM.GNAME", cpu: { :$sum => "$VM.TEMPLATE.CPU" } } }
+  #   OneVirtualMachine.with(collection: collection).collection.aggregate([match_operator, group_operator])
+  # end
   #
-  # @param [Fixnum] from date in UNIX epoch format
-  # @param [Fixnum] to date in UNIX epoch format
-  # @return [Hash] map of groups and sum of CPUs
-  def map_group_cpu(from, to)
-    match_operator = {:$match => {'VM.DEPLOY_ID' => { :$ne => nil },'VM.HISTORY_RECORDS.HISTORY.RSTIME' => {'$lte' => to}, '$or' => [{'VM.HISTORY_RECORDS.HISTORY.RETIME' => {'$gte' => from}}, {'VM.HISTORY_RECORDS.HISTORY.RETIME' => 0}]}}
-    group_operator = {:$group => {_id: "$VM.GNAME", cpu: { :$sum => "$VM.TEMPLATE.CPU" } } }
-    OneVirtualMachine.with(collection: collection).collection.aggregate([match_operator, group_operator])
-  end
-
-  # Returns map of users in a group and sum of CPUs within time range
+  # # Returns map of users in a group and sum of CPUs within time range
+  # #
+  # # @param [String] group
+  # # @param [Fixnum] from date in UNIX epoch format
+  # # @param [Fixnum] to date in UNIX epoch format
+  # # @return [Hash] map of users and sum of CPUs
+  # def map_user_cpu_in_group(group, from, to)
+  #   match_operator = {:$match => {'VM.DEPLOY_ID' => { :$ne => nil }, 'VM.GNAME' => group,'VM.HISTORY_RECORDS.HISTORY.RSTIME' => {'$lte' => to}, '$or' => [{'VM.HISTORY_RECORDS.HISTORY.RETIME' => {'$gte' => from}}, {'VM.HISTORY_RECORDS.HISTORY.RETIME' => 0}]}}
+  #   group_operator = {:$group => {_id: "$VM.UNAME", cpu: { :$sum => "$VM.TEMPLATE.CPU" } } }
+  #   OneVirtualMachine.with(collection: collection).collection.aggregate([match_operator, group_operator])
+  # end
   #
-  # @param [String] group
-  # @param [Fixnum] from date in UNIX epoch format
-  # @param [Fixnum] to date in UNIX epoch format
-  # @return [Hash] map of users and sum of CPUs
-  def map_user_cpu_in_group(group, from, to)
-    match_operator = {:$match => {'VM.DEPLOY_ID' => { :$ne => nil }, 'VM.GNAME' => group,'VM.HISTORY_RECORDS.HISTORY.RSTIME' => {'$lte' => to}, '$or' => [{'VM.HISTORY_RECORDS.HISTORY.RETIME' => {'$gte' => from}}, {'VM.HISTORY_RECORDS.HISTORY.RETIME' => 0}]}}
-    group_operator = {:$group => {_id: "$VM.UNAME", cpu: { :$sum => "$VM.TEMPLATE.CPU" } } }
-    OneVirtualMachine.with(collection: collection).collection.aggregate([match_operator, group_operator])
-  end
-
-  # Returns map of users and their virtual machines' IDs within time range
+  # # Returns map of users and their virtual machines' IDs within time range
+  # #
+  # # @param [Fixnum] from date in UNIX epoch format
+  # # @param [Fixnum] to date in UNIX epoch format
+  # # @return [Hash] map of users and their virtual machines' IDs
+  # def map_user_vms(from, to)
+  #   match_operator = {:$match => {'VM.DEPLOY_ID' => { :$ne => nil },'VM.HISTORY_RECORDS.HISTORY.RSTIME' => {'$lte' => to}, '$or' => [{'VM.HISTORY_RECORDS.HISTORY.RETIME' => {'$gte' => from}}, {'VM.HISTORY_RECORDS.HISTORY.RETIME' => 0}]}}
+  #   group_operator = {:$group => {_id: "$VM.UNAME", vms: { :$addToSet => "$VM.DEPLOY_ID" } } }
+  #   OneVirtualMachine.with(collection: collection).collection.aggregate([match_operator, group_operator])
+  # end
   #
-  # @param [Fixnum] from date in UNIX epoch format
-  # @param [Fixnum] to date in UNIX epoch format
-  # @return [Hash] map of users and their virtual machines' IDs
-  def map_user_vms(from, to)
-    match_operator = {:$match => {'VM.DEPLOY_ID' => { :$ne => nil },'VM.HISTORY_RECORDS.HISTORY.RSTIME' => {'$lte' => to}, '$or' => [{'VM.HISTORY_RECORDS.HISTORY.RETIME' => {'$gte' => from}}, {'VM.HISTORY_RECORDS.HISTORY.RETIME' => 0}]}}
-    group_operator = {:$group => {_id: "$VM.UNAME", vms: { :$addToSet => "$VM.DEPLOY_ID" } } }
-    OneVirtualMachine.with(collection: collection).collection.aggregate([match_operator, group_operator])
-  end
-
-  # Returns map of groups and their virtual machines' IDs within time range
+  # # Returns map of groups and their virtual machines' IDs within time range
+  # #
+  # # @param [Fixnum] from date in UNIX epoch format
+  # # @param [Fixnum] to date in UNIX epoch format
+  # # @return [Hash] map of groups and their virtual machines' IDs
+  # def map_group_vms(from, to)
+  #   match_operator = {:$match => {'VM.DEPLOY_ID' => { :$ne => nil },'VM.HISTORY_RECORDS.HISTORY.RSTIME' => {'$lte' => to}, '$or' => [{'VM.HISTORY_RECORDS.HISTORY.RETIME' => {'$gte' => from}}, {'VM.HISTORY_RECORDS.HISTORY.RETIME' => 0}]}}
+  #   group_operator = {:$group => {_id: "$VM.GNAME", vms: { :$addToSet => "$VM.DEPLOY_ID" } } }
+  #   OneVirtualMachine.with(collection: collection).collection.aggregate([match_operator, group_operator])
+  # end
   #
-  # @param [Fixnum] from date in UNIX epoch format
-  # @param [Fixnum] to date in UNIX epoch format
-  # @return [Hash] map of groups and their virtual machines' IDs
-  def map_group_vms(from, to)
-    match_operator = {:$match => {'VM.DEPLOY_ID' => { :$ne => nil },'VM.HISTORY_RECORDS.HISTORY.RSTIME' => {'$lte' => to}, '$or' => [{'VM.HISTORY_RECORDS.HISTORY.RETIME' => {'$gte' => from}}, {'VM.HISTORY_RECORDS.HISTORY.RETIME' => 0}]}}
-    group_operator = {:$group => {_id: "$VM.GNAME", vms: { :$addToSet => "$VM.DEPLOY_ID" } } }
-    OneVirtualMachine.with(collection: collection).collection.aggregate([match_operator, group_operator])
-  end
-
-  # Returns map of users in a group and their virtual machines' IDs within time
-  # range
-  #
-  # @param [String] group
-  # @param [Fixnum] from date in UNIX epoch format
-  # @param [Fixnum] to date in UNIX epoch format
-  # @return [Hash] map of users and their virtual machines' IDs
-  def map_user_vms_in_group(group, from, to)
-    match_operator = {:$match => {'VM.DEPLOY_ID' => { :$ne => nil },'VM.GNAME' => group, 'VM.HISTORY_RECORDS.HISTORY.RSTIME' => {'$lte' => to}, '$or' => [{'VM.HISTORY_RECORDS.HISTORY.RETIME' => {'$gte' => from}}, {'VM.HISTORY_RECORDS.HISTORY.RETIME' => 0}]}}
-    group_operator = {:$group => {_id: "$VM.UNAME", vms: { :$addToSet => "$VM.DEPLOY_ID" } } }
-    OneVirtualMachine.with(collection: collection).collection.aggregate([match_operator, group_operator])
-  end
+  # # Returns map of users in a group and their virtual machines' IDs within time
+  # # range
+  # #
+  # # @param [String] group
+  # # @param [Fixnum] from date in UNIX epoch format
+  # # @param [Fixnum] to date in UNIX epoch format
+  # # @return [Hash] map of users and their virtual machines' IDs
+  # def map_user_vms_in_group(group, from, to)
+  #   match_operator = {:$match => {'VM.DEPLOY_ID' => { :$ne => nil },'VM.GNAME' => group, 'VM.HISTORY_RECORDS.HISTORY.RSTIME' => {'$lte' => to}, '$or' => [{'VM.HISTORY_RECORDS.HISTORY.RETIME' => {'$gte' => from}}, {'VM.HISTORY_RECORDS.HISTORY.RETIME' => 0}]}}
+  #   group_operator = {:$group => {_id: "$VM.UNAME", vms: { :$addToSet => "$VM.DEPLOY_ID" } } }
+  #   OneVirtualMachine.with(collection: collection).collection.aggregate([match_operator, group_operator])
+  # end
 
   # Returns number of newly started virtual machines within time range
   #

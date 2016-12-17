@@ -17,7 +17,7 @@ class Michal::Modules::Overall < Michal::Modules::Base
 
   class << self
     def module?
-      true
+      false
     end
 
     def components
