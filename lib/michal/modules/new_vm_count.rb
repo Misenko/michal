@@ -56,7 +56,7 @@ class Michal::Modules::NewVmCount < Michal::Modules::Base
     (range_start..range_end).step(1.send(step)).each do |date|
       count = 0
       sources[:opennebula].each do |opennebula|
-        result = opennebula.new_vm_count(date, date + 1.send(step)).first
+        result = opennebula.new_vm_count(date, date + 1.send(step), Settings[:sources][opennebula.name.to_sym][:clusters]).first
         count += result['count'] if result
       end
 
