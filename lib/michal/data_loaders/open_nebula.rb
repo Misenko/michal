@@ -85,6 +85,24 @@ class Michal::DataLoaders::OpenNebula
     load_element(::OpenNebula::Datastore, id)
   end
 
+  # Load cluster
+  #
+  # @param [Fixnum] id
+  # @return [OpenNebula::Cluster] loaded cluster
+  def load_cluster(id)
+    load_element(::OpenNebula::Cluster, id)
+  end
+
+  # Loads clusters
+  #
+  # @return [OpenNebula::DatastorePool] pool of loaded clusters
+  def load_clusters
+    cluster_pool = ::OpenNebula::ClusterPool.new client
+    Michal::Helpers::OpenNebulaHelper.handle_opennebula_error { cluster_pool.info! }
+
+    cluster_pool
+  end
+
   private
 
   def load_element(element_class, id)

@@ -5,10 +5,12 @@ class Michal::Modules::InTime < Michal::Modules::Base
     allocated_vcpu: { names: ['allocated_vcpu'], desc_name: 'Allocated VCPU' },
     allocated_memory: { names: ['allocated_memory'], desc_name: 'Allocated Memory' },
     used_memory: { names: ['used_memory'], desc_name: 'Used Memory' },
+    available_cpu: { names: ['available_cpu'], desc_name: 'Available CPU' },
     allocated_cpu_vs_cpu_load: { names: ['cpu_load', 'allocated_cpu'], desc_name: 'Allocated CPU vs. CPU Load' },
     allocated_cpu_vs_allocated_vcpu: { names: ['allocated_vcpu', 'allocated_cpu'], desc_name: 'Allocated CPU vs. Allocated VCPU' },
     used_memory_vs_allocated_memory: { names: ['used_memory', 'allocated_memory'], desc_name: 'Allocated Memory vs. Used Memory' },
-    allocated_memory_vs_allocated_cpu: { names: ['allocated_memory', 'allocated_cpu'], desc_name: 'Allocated Memory vs. Allocated CPU', options: { multiple_axis: true } }
+    allocated_memory_vs_allocated_cpu: { names: ['allocated_memory', 'allocated_cpu'], desc_name: 'Allocated Memory vs. Allocated CPU', options: { multiple_axis: true } },
+    available_cpu_vs_allocated_cpu_: { names: ['available_cpu', 'allocated_cpu'], desc_name: 'Available CPU vs. Allocated CPU' },
   }
 
   ENTITIES = {
@@ -81,6 +83,14 @@ class Michal::Modules::InTime < Michal::Modules::Base
   # @return [Hash] data
   def allocated_vcpu(parameters)
     data_from_opentsdb(:allocated_vcpu, METRICES[:allocated_vcpu][:desc_name], parameters)
+  end
+
+  # Returns available CPUs
+  #
+  # @param [Hash] parameters
+  # @return [Hash] data
+  def available_cpu(parameters)
+    data_from_opentsdb(:available_cpu, METRICES[:available_cpu][:desc_name], parameters, Memoir::Aggregator::SUM, Memoir::Aggregator::MAX)
   end
 
   # Returns data about allocated memory
@@ -156,9 +166,9 @@ class Michal::Modules::InTime < Michal::Modules::Base
   # @param [String] name of entity
   # @param [Hash] parameters
   # @return [Hash] data
-  def data_from_opentsdb(metric, name, parameters)
-    parameters[:aggregator] = Memoir::Aggregator::SUM
-    parameters[:downsample_aggregator] = Memoir::Aggregator::AVG
+  def data_from_opentsdb(metric, name, parameters, aggregator = Memoir::Aggregator::SUM, downsample_aggregator = Memoir::Aggregator::AVG)
+    parameters[:aggregator] = aggregator
+    parameters[:downsample_aggregator] = downsample_aggregator
     filter = {}
     filter[:group_by] = false
     filter[:type] = Memoir::FilterType::LITERAL_OR

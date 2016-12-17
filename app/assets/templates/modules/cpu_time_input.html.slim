@@ -1,0 +1,27 @@
+div ng-controller='CpuTimeInputController'
+  form flex="" layout="column" layout-padding="" layout-margin="" layout-fill=""
+    md-input-container
+      label Entity type
+      md-select ng-model='graph.entity_type'
+        md-option ng-repeat="entity in entities" ng-value="entity" {{entity.desc_name}}
+    div layout="row" layout-fill="" class="two-md-input-containers"
+      md-input-container flex="65"
+        label Period
+        md-select ng-model='graph.last'
+          md-option ng-value='period.name' ng-repeat="period in periods" {{period.desc_name}}
+      div layout="row" flex="35"
+        div class="datepicker-div" flex=""
+          md-datepicker ng-model="graph.from" md-placeholder="From" md-max-date="maxDate" ng-disabled="graph.last"
+        div class="datepicker-div" flex=""
+          md-datepicker ng-model="graph.to" md-placeholder="To" md-max-date="maxDate" ng-disabled="graph.last"
+    md-input-container
+      label OpenTSDB source
+      md-select ng-model='graph.sources.opentsdb'
+        md-option ng-value='source' ng-repeat='source in sources.opentsdb' {{source}}
+    div layout="row" class="two-md-input-containers" layout-fill=""
+      md-input-container flex=""
+        label OpenNebula source
+        md-select ng-model='selectedOpenNebulaSources' ng-disabled="all_opennebula_sources" ng-change="setOpenNebulaSources()"
+          md-option ng-value='source' ng-repeat='source in sources.opennebula' {{source}}
+      md-input-container flex="none"
+        md-checkbox md-no-ink="" aria-label="Use all OpenNebula sources" ng-model="all_opennebula_sources" ng-change="setOpenNebulaSources()" class="md-primary" Use all OpenNebula sources

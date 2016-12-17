@@ -9,7 +9,9 @@ class Michal::Sources::OpenTsdb < Michal::Sources::Base
     cpu_load: 'libvirt.vm.cpu.load',
     allocated_vcpu: 'libvirt.vm.max.vcpus',
     allocated_memory: 'libvirt.vm.max.memory',
-    used_memory: 'libvirt.vm.memory'
+    used_memory: 'libvirt.vm.memory',
+    available_cpu: 'cpustat.count',
+    cpu_time: 'libvirt.vm.cpu.time'
   }
 
   STATUSES = {
@@ -39,11 +41,13 @@ class Michal::Sources::OpenTsdb < Michal::Sources::Base
   # @return [Array] returned data sets
   def query(metric, parameters)
     @metric = metric
-    calculate_downsample(parameters) unless parameters[:downsample]
+    calculate_downsample(parameters) unless parameters[:downsample] || parameters[:downsample] == 0
 
     query = Memoir::Query.new parameters[:aggregator], METRICES[metric]
-    downsample = Memoir::Downsample.new Memoir::TimePeriod.new(parameters[:downsample], Memoir::Units::SECONDS), parameters[:downsample_aggregator]
-    query.downsample = downsample
+    unless parameters[:downsample] == 0
+      downsample = Memoir::Downsample.new Memoir::TimePeriod.new(parameters[:downsample], Memoir::Units::SECONDS), parameters[:downsample_aggregator]
+      query.downsample = downsample
+    end
     parameters[:filters].each do |filter_params|
       filter = Memoir::Filter.new filter_params[:type], filter_params[:tagk], filter_params[:filter], filter_params[:group_by]
       query << filter
