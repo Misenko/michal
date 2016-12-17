@@ -15,8 +15,13 @@ class Michal::Sources::OpenNebula < Michal::Sources::Base
   # @param [Fixnum] from date in UNIX epoch format
   # @param [Fixnum] to date in UNIX epoch format
   # @return [Array] found virtual machines
-  def vms_for_user(username, from, to)
-    OneVirtualMachine.with(collection: collection).where({'VM.UNAME' => username, 'VM.HISTORY_RECORDS.HISTORY.RSTIME' => {'$lte' => to}, '$or' => [{'VM.HISTORY_RECORDS.HISTORY.RETIME' => {'$gte' => from}}, {'VM.HISTORY_RECORDS.HISTORY.RETIME' => 0}]}).distinct('VM.DEPLOY_ID')
+  def vms_for_user(username, from, to, clusters)
+    cluster_ids = OneCluster.with(collection: collection).in('CLUSTER.NAME': clusters).map { |document| document['CLUSTER']['ID'] }
+    project_operator = { "$project" =>{"VM.DEPLOY_ID" => true, "VM.STATE" => true, "VM.UNAME" => true, "first_history" => { "$slice" => ["$VM.HISTORY_RECORDS.HISTORY", 1] }, "last_history" => {"$slice" => ["$VM.HISTORY_RECORDS.HISTORY", -1] },"VM" => {"HISTORY_RECORDS" => {"HISTORY" => {"RSTIME" => 1,"RETIME" => 1}}}}}
+    match_operator = {"$match" => {'VM.UNAME' => username, "VM.DEPLOY_ID" => {"$ne" => nil}, "first_history.RSTIME" => {"$lte" => to}, "$and" => [{"$or" => [{"last_history.RETIME" => {"$gte" => from}}, {"VM.STATE" => {"$ne" => 6}}]}, {"$or" => [{"last_history.RETIME" => 0},{"VM.STATE" => 6}]}],"last_history.CID" => {"$in" => cluster_ids}}}
+    another_project_operator = {"$project" => {"VM.DEPLOY_ID" => true}}
+
+    OneVirtualMachine.with(collection: collection).collection.aggregate([project_operator, match_operator, another_project_operator])
   end
 
   # Finds virtual machine for specified group within time range
@@ -25,8 +30,13 @@ class Michal::Sources::OpenNebula < Michal::Sources::Base
   # @param [Fixnum] from date in UNIX epoch format
   # @param [Fixnum] to date in UNIX epoch format
   # @return [Array] found virtual machines
-  def vms_for_group(group_name, from, to)
-    OneVirtualMachine.with(collection: collection).where({'VM.GNAME' => group_name, 'VM.HISTORY_RECORDS.HISTORY.RSTIME' => {'$lte' => to}, '$or' => [{'VM.HISTORY_RECORDS.HISTORY.RETIME' => {'$gte' => from}}, {'VM.HISTORY_RECORDS.HISTORY.RETIME' => 0}]}).distinct('VM.DEPLOY_ID')
+  def vms_for_group(group_name, from, to, clusters)
+    cluster_ids = OneCluster.with(collection: collection).in('CLUSTER.NAME': clusters).map { |document| document['CLUSTER']['ID'] }
+    project_operator = { "$project" =>{"VM.DEPLOY_ID" => true, "VM.STATE" => true, "VM.GNAME" => true, "first_history" => { "$slice" => ["$VM.HISTORY_RECORDS.HISTORY", 1] }, "last_history" => {"$slice" => ["$VM.HISTORY_RECORDS.HISTORY", -1] },"VM" => {"HISTORY_RECORDS" => {"HISTORY" => {"RSTIME" => 1,"RETIME" => 1}}}}}
+    match_operator = {"$match" => {'VM.GNAME' => group_name, "VM.DEPLOY_ID" => {"$ne" => nil}, "first_history.RSTIME" => {"$lte" => to}, "$and" => [{"$or" => [{"last_history.RETIME" => {"$gte" => from}}, {"VM.STATE" => {"$ne" => 6}}]}, {"$or" => [{"last_history.RETIME" => 0},{"VM.STATE" => 6}]}],"last_history.CID" => {"$in" => cluster_ids}}}
+    another_project_operator = {"$project" => {"VM.DEPLOY_ID" => true}}
+
+    OneVirtualMachine.with(collection: collection).collection.aggregate([project_operator, match_operator, another_project_operator])
   end
 
   # Returns sum of CPUs for virtual machine in specified time
@@ -34,10 +44,12 @@ class Michal::Sources::OpenNebula < Michal::Sources::Base
   # @param [Array] vm_deploy_ids IDs of virtual machines
   # @param [Fixnum] time date in UNIX epoch format
   # @return [Hash] sum of CPUs
-  def cpu_sum(vm_deploy_ids, time)
-    match_operator = {'$match' => {'VM.DEPLOY_ID' => {'$in' => vm_deploy_ids}, 'VM.HISTORY_RECORDS.HISTORY.RSTIME' => {'$lte' => time}, '$or' => [{'VM.HISTORY_RECORDS.HISTORY.RETIME' => {'$gte' => time}}, {'VM.HISTORY_RECORDS.HISTORY.RETIME' => 0}] }}
+  def cpu_sum(vm_deploy_ids, time, clusters)
+    cluster_ids = OneCluster.with(collection: collection).in('CLUSTER.NAME': clusters).map { |document| document['CLUSTER']['ID'] }
+    project_operator = { "$project" =>{"VM.DEPLOY_ID" => true, "VM.STATE" => true, "VM.TEMPLATE.CPU" => true, "first_history" => { "$slice" => ["$VM.HISTORY_RECORDS.HISTORY", 1] }, "last_history" => {"$slice" => ["$VM.HISTORY_RECORDS.HISTORY", -1] },"VM" => {"HISTORY_RECORDS" => {"HISTORY" => {"RSTIME" => 1,"RETIME" => 1}}}}}
+    match_operator = {"$match" => {'VM.DEPLOY_ID' => {'$in' => vm_deploy_ids}, "first_history.RSTIME" => {"$lte" => time}, "$and" => [{"$or" => [{"last_history.RETIME" => {"$gte" => time}}, {"VM.STATE" => {"$ne" => 6}}]}, {"$or" => [{"last_history.RETIME" => 0},{"VM.STATE" => 6}]}],"last_history.CID" => {"$in" => cluster_ids}}}
     group_operator = {'$group' => {'_id' => nil, 'cpu' => { '$sum' => "$VM.TEMPLATE.CPU" } } }
-    OneVirtualMachine.with(collection: collection).collection.aggregate([match_operator, group_operator])
+    OneVirtualMachine.with(collection: collection).collection.aggregate([project_operator, match_operator, group_operator])
   end
 
   # # Returns map of users and sum of CPUs within time range

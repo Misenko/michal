@@ -144,14 +144,14 @@ class Michal::Modules::InTime < Michal::Modules::Base
     when ENTITIES[:vm_id][:name]
       vm_deploy_ids << parameters[:entity_name]
     when ENTITIES[:user][:name], ENTITIES[:group][:name]
-      vm_deploy_ids = sources[:opennebula].send("vms_for_#{parameters[:entity_type][:name]}", parameters[:entity_name], parameters[:from], parameters[:to])
+      vm_deploy_ids = sources[:opennebula].send("vms_for_#{parameters[:entity_type][:name]}", parameters[:entity_name], parameters[:from], parameters[:to], Settings[:sources][sources[:opennebula].name.to_sym][:clusters]).map { |vm| vm['VM']['DEPLOY_ID'] }
       vm_deploy_ids.compact!
     end
 
     data = []
     times = (parameters[:from]..parameters[:to]).spread(MAX_DATA_POINTS)
     times.each do |time|
-      result = sources[:opennebula].cpu_sum(vm_deploy_ids, time)
+      result = sources[:opennebula].cpu_sum(vm_deploy_ids, time, Settings[:sources][sources[:opennebula].name.to_sym][:clusters])
       data << [time*1000, result.first['cpu']]
     end
 
@@ -178,14 +178,21 @@ class Michal::Modules::InTime < Michal::Modules::Base
       filter[:filter] = parameters[:entity_name]
       parameters[:filters] = [filter]
     else
-      vm_ids = sources[:opennebula].send("vms_for_#{parameters[:entity_type][:name]}", parameters[:entity_name], parameters[:from], parameters[:to])
+      vm_ids = sources[:opennebula].send("vms_for_#{parameters[:entity_type][:name]}", parameters[:entity_name], parameters[:from], parameters[:to], Settings[:sources][sources[:opennebula].name.to_sym][:clusters]).map { |vm| vm['VM']['DEPLOY_ID'] }
       filter[:tagk] = ENTITIES[:vm_id][:name]
       filter[:filter] = vm_ids.compact.join('|')
 
+      # FIXME
+      # Some of this years data are still missing 'cloudsite' tag so for now we use clusters to determine which OpenNebula was used
+      # opennebula_filter = {}
+      # opennebula_filter[:tagk] = 'cloudsite'
+      # opennebula_filter[:filter] = parameters[:sources][:opennebula]
+      # opennebula_filter[:group_by] = false
+      # opennebula_filter[:type] = Memoir::FilterType::LITERAL_OR
+
       opennebula_filter = {}
-      #FIXME store the tag value somewhere else
-      opennebula_filter[:tagk] = 'cloudsite'
-      opennebula_filter[:filter] = parameters[:sources][:opennebula]
+      opennebula_filter[:tagk] = 'clustername'
+      opennebula_filter[:filter] = parameters[:sources][:opennebula] == 'MetaCloud' ? 'dukan.ics.muni.cz' : 'warg.meta.zcu.cz'
       opennebula_filter[:group_by] = false
       opennebula_filter[:type] = Memoir::FilterType::LITERAL_OR
 
