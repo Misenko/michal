@@ -1,6 +1,6 @@
 michal.controller("CpuTimeOutputController", function($scope) {
   $scope.secondsToHours = function(seconds) {
-    return seconds / 3600;
+    return +(seconds / 3600).toFixed(2);
   }
 
   $scope.chartFromGraph = function(graph){
@@ -15,7 +15,7 @@ michal.controller("CpuTimeOutputController", function($scope) {
               allowPointSelect: true,
               cursor: 'pointer',
               enabled: true,
-              format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+              format: '<b>{point.name}</b>: {point.percentage:.2f} %'
             }
           }
         },

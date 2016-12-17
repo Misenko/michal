@@ -1,5 +1,9 @@
 div ng-controller='LifetimeInputController'
   form flex="" layout="column" layout-padding="" layout-margin="" layout-fill=""
+    md-input-container
+      label Metric
+      md-select ng-model='selectedMetric' ng-change='updateMetric()'
+        md-option ng-repeat="metric in metrices" ng-value="metric" {{metric.desc_name}}
     div layout="row" layout-fill="" class="two-md-input-containers"
       md-input-container flex="65"
         label Period
@@ -10,6 +14,10 @@ div ng-controller='LifetimeInputController'
           md-datepicker ng-model="graph.from" md-placeholder="From" md-max-date="maxDate" ng-disabled="graph.last"
         div class="datepicker-div" flex=""
           md-datepicker ng-model="graph.to" md-placeholder="To" md-max-date="maxDate" ng-disabled="graph.last"
+    md-input-container
+      label OpenTSDB source
+      md-select ng-model='graph.sources.opentsdb'
+        md-option ng-value='source' ng-repeat='source in sources.opentsdb' {{source}}
     div layout="row" class="two-md-input-containers" layout-fill=""
       md-input-container flex=""
         label OpenNebula source

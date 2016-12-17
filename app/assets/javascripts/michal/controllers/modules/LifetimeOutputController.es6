@@ -1,4 +1,8 @@
 michal.controller("LifetimeOutputController", function($scope) {
+  $scope.secondsToHours = function(seconds) {
+    return +(seconds / 3600).toFixed(2);
+  }
+
   $scope.chartFromGraph = function(graph){
     var chart = {
       options: {
@@ -11,7 +15,7 @@ michal.controller("LifetimeOutputController", function($scope) {
               allowPointSelect: true,
               cursor: 'pointer',
               enabled: true,
-              format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+              format: '<b>{point.name}</b>: {point.percentage:.2f} %'
             }
           }
         }
@@ -29,7 +33,11 @@ michal.controller("LifetimeOutputController", function($scope) {
     // sets points' tooltip
     chart.options.tooltip = {
       pointFormatter: function(){
-        return 'Nnumber of VMs: ' + this.y;
+        if(this.series.userOptions.metric == 'cpu_time'){
+          return 'CPU usage: ' + $scope.secondsToHours(this.y) + ' CPU hours';
+        } else{
+          return 'Nnumber of VMs: ' + this.y;
+        }
       }
     }
 
