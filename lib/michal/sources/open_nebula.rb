@@ -126,9 +126,10 @@ class Michal::Sources::OpenNebula < Michal::Sources::Base
   # @param [Fixnum] from date in UNIX epoch format
   # @param [Fixnum] to date in UNIX epoch format
   # @return [Hash] number of newly started virtual machines
-  def new_vm_count(from, to)
+  def new_vm_count(from, to, clusters)
+    cluster_ids = OneCluster.with(collection: collection).in('CLUSTER.NAME': clusters).map { |document| document['CLUSTER']['ID'] }
     first_rstime = 'VM.HISTORY_RECORDS.HISTORY.0.RSTIME'
-    match_operator = {:$match => {'VM.DEPLOY_ID' => { :$ne => nil }, first_rstime => {'$lte' => to, '$gte' => from} } }
+    match_operator = {:$match => {'VM.DEPLOY_ID' => { :$ne => nil }, first_rstime => {'$lte' => to, '$gte' => from}, "VM.HISTORY_RECORDS.HISTORY.0.CID" => {"$in" => cluster_ids} } }
     group_operator = {:$group => { _id: nil, :count => { :$sum => 1 } } }
     OneVirtualMachine.with(collection: collection).collection.aggregate([match_operator, group_operator])
   end
