@@ -165,13 +165,27 @@ class Michal::Sources::OpenNebula < Michal::Sources::Base
 
   def map_vms_runtime(from, to, clusters)
     cluster_ids = OneCluster.with(collection: collection).in('CLUSTER.NAME': clusters).map { |document| document['CLUSTER']['ID'] }
-    project_operator = { "$project" =>{"VM.DEPLOY_ID" => true, "VM.STATE" => true, "VM.UNAME" => true, "first_history" => { "$slice" => ["$VM.HISTORY_RECORDS.HISTORY", 1] }, "last_history" => {"$slice" => ["$VM.HISTORY_RECORDS.HISTORY", -1] },"VM" => {"HISTORY_RECORDS" => {"HISTORY" => {"RSTIME" => 1,"RETIME" => 1}}}}}
-    match_operator = {"$match" => {"VM.DEPLOY_ID" => {"$ne" => nil}, "first_history.RSTIME" => {"$lte" => to}, "$and" => [{"$or" => [{"last_history.RETIME" => {"$gte" => from}}, {"VM.STATE" => {"$ne" => 6}}]}, {"$or" => [{"last_history.RETIME" => 0},{"VM.STATE" => 6}]}],"last_history.CID" => {"$in" => cluster_ids}}}
-    unwind_operator = {"$unwind" => "$VM.HISTORY_RECORDS.HISTORY"}
-    group_operator = {"$group" => {"_id" => "$VM.DEPLOY_ID", "diffs" => {"$addToSet" => {"$subtract" => [{"$cond" => { "if" => {"$ne" => ["$VM.HISTORY_RECORDS.HISTORY.RETIME",0]}, "then" => "$VM.HISTORY_RECORDS.HISTORY.RETIME", "else" => Time.new.to_i}}, "$VM.HISTORY_RECORDS.HISTORY.RSTIME"]}}}}
-    another_unwind_operator = {"$unwind" => "$diffs"}
-    another_group_operator = {"$group" => {"_id" => "$_id", "lifetime" => {"$sum":"$diffs"}}}
+    project_1 = { "$project" =>{"VM.DEPLOY_ID" => true, "VM.STATE" => true, "VM.UNAME" => true, "first_history" => { "$slice" => ["$VM.HISTORY_RECORDS.HISTORY", 1] }, "last_history" => {"$slice" => ["$VM.HISTORY_RECORDS.HISTORY", -1] },"VM" => {"HISTORY_RECORDS" => {"HISTORY" => {"RSTIME" => 1,"RETIME" => 1,"CID" => 1}}}}}
+    match_1 = {"$match" => {"VM.DEPLOY_ID" => {"$ne" => nil}, "first_history.RSTIME" => {"$lte" => to}, "$and" => [{"$or" => [{"last_history.RETIME" => {"$gte" => from}}, {"VM.STATE" => {"$ne" => 6}}]}, {"$or" => [{"last_history.RETIME" => 0},{"VM.STATE" => 6}]}],"last_history.CID" => {"$in" => cluster_ids}}}
+    unwind_1 = {"$unwind" => "$VM.HISTORY_RECORDS.HISTORY"}
+    match_2 = {"$match" => {"VM.DEPLOY_ID" => {"$ne" => nil}, "VM.HISTORY_RECORDS.HISTORY.RSTIME" => {"$lte" => to}, "$and" => [{"$or" => [{"VM.HISTORY_RECORDS.HISTORY.RETIME" => {"$gte" => from}}, {"VM.STATE" => {"$ne" => 6}}]}, {"$or" => [{"VM.HISTORY_RECORDS.HISTORY.RETIME" => 0},{"VM.STATE" => 6}]}],"VM.HISTORY_RECORDS.HISTORY.CID" => {"$in" => cluster_ids}}}
+    group_1 = {"$group" => {"_id" => "$VM.DEPLOY_ID", "diffs" => {"$addToSet" => {"$subtract" => [{"$min" => [{"$cond" => { "if" => {"$ne" => ["$VM.HISTORY_RECORDS.HISTORY.RETIME",0]}, "then" => "$VM.HISTORY_RECORDS.HISTORY.RETIME", "else" => to}},to]}, {"$max" => ["$VM.HISTORY_RECORDS.HISTORY.RSTIME",from]}]}}}}
+    unwind_2 = {"$unwind" => "$diffs"}
+    group_2 = {"$group" => {"_id" => "$_id", "lifetime" => {"$sum":"$diffs"}}}
 
-    OneVirtualMachine.with(collection: collection).collection.aggregate([project_operator, match_operator, unwind_operator, group_operator, another_unwind_operator, another_group_operator])
+    OneVirtualMachine.with(collection: collection).collection.aggregate([project_1, match_1, unwind_1, match_2, group_1, unwind_2, group_2])
+  end
+
+  def map_vms_allocated_cputime(from, to, clusters)
+    cluster_ids = OneCluster.with(collection: collection).in('CLUSTER.NAME': clusters).map { |document| document['CLUSTER']['ID'] }
+    project_1 = { "$project" =>{"VM.DEPLOY_ID" => true, "VM.STATE" => true, "VM.UNAME" => true, "VM.TEMPLATE.CPU" => true,"first_history" => { "$slice" => ["$VM.HISTORY_RECORDS.HISTORY", 1] }, "last_history" => {"$slice" => ["$VM.HISTORY_RECORDS.HISTORY", -1] },"VM" => {"HISTORY_RECORDS" => {"HISTORY" => {"RSTIME" => 1,"RETIME" => 1,"CID" => 1}}}}}
+    match_1 = {"$match" => {"VM.DEPLOY_ID" => {"$ne" => nil}, "first_history.RSTIME" => {"$lte" => to}, "$and" => [{"$or" => [{"last_history.RETIME" => {"$gte" => from}}, {"VM.STATE" => {"$ne" => 6}}]}, {"$or" => [{"last_history.RETIME" => 0},{"VM.STATE" => 6}]}],"last_history.CID" => {"$in" => cluster_ids}}}
+    unwind_1 = {"$unwind" => "$VM.HISTORY_RECORDS.HISTORY"}
+    match_2 = {"$match" => {"VM.DEPLOY_ID" => {"$ne" => nil}, "VM.HISTORY_RECORDS.HISTORY.RSTIME" => {"$lte" => to}, "$and" => [{"$or" => [{"VM.HISTORY_RECORDS.HISTORY.RETIME" => {"$gte" => from}}, {"VM.STATE" => {"$ne" => 6}}]}, {"$or" => [{"VM.HISTORY_RECORDS.HISTORY.RETIME" => 0},{"VM.STATE" => 6}]}],"VM.HISTORY_RECORDS.HISTORY.CID" => {"$in" => cluster_ids}}}
+    group_1 = {"$group" => {"_id" => "$VM.DEPLOY_ID", "diffs" => {"$addToSet" => {"$multiply" => [{"$subtract" => [{"$min" => [{"$cond" => { "if" => {"$ne" => ["$VM.HISTORY_RECORDS.HISTORY.RETIME",0]}, "then" => "$VM.HISTORY_RECORDS.HISTORY.RETIME", "else" => to}},to]}, {"$max" => ["$VM.HISTORY_RECORDS.HISTORY.RSTIME",from]}]}, "$VM.TEMPLATE.CPU"]}}}}
+    unwind_2 = {"$unwind" => "$diffs"}
+    group_2 = {"$group" => {"_id" => "$_id", "allocated_cputime" => {"$sum":"$diffs"}}}
+
+    OneVirtualMachine.with(collection: collection).collection.aggregate([project_1, match_1, unwind_1, match_2, group_1, unwind_2, group_2])
   end
 end
