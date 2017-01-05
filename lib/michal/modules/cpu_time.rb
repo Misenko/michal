@@ -77,7 +77,7 @@ class Michal::Modules::CpuTime < Michal::Modules::Base
     entity_type = parameters[:entity_type][:name]
 
     sources[:opennebula].each do |opennebula|
-      entities = opennebula.send("map_#{entity_type}_vms_with_clusters".to_sym, request_from, request_to, Settings[:sources][opennebula.name.to_sym][:clusters])
+      entities = opennebula.send("map_#{entity_type}_vms".to_sym, request_from, request_to, Settings[:sources][opennebula.name.to_sym][:clusters])
       entities.each do |entity|
         entity_name = entity['_id']
 
