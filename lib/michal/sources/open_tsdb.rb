@@ -31,7 +31,7 @@ class Michal::Sources::OpenTsdb < Michal::Sources::Base
     hostname = Settings[:sources][name][:endpoint]
     port = Settings[:sources][name][:port]
 
-    @client = Memoir::Client.new(hostname, port, logger)
+    @client = Memoir::Client.new(hostname, port, logger, timeout: 3600)
   end
 
   # Runs query on OpenTSDB
@@ -48,6 +48,7 @@ class Michal::Sources::OpenTsdb < Michal::Sources::Base
       downsample = Memoir::Downsample.new Memoir::TimePeriod.new(parameters[:downsample], Memoir::Units::SECONDS), parameters[:downsample_aggregator]
       query.downsample = downsample
     end
+    query.explicit_tags = parameters[:explicit_tags] if parameters[:explicit_tags]
     parameters[:filters].each do |filter_params|
       filter = Memoir::Filter.new filter_params[:type], filter_params[:tagk], filter_params[:filter], filter_params[:group_by]
       query << filter

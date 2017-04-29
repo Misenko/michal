@@ -197,6 +197,21 @@ class Michal::Modules::InTime < Michal::Modules::Base
       opennebula_filter[:type] = Memoir::FilterType::LITERAL_OR
 
       parameters[:filters] = [filter, opennebula_filter]
+
+      ## HACK ##
+      keys = ['type', 'city', 'cloudsite', 'host', 'model', 'processor']
+      keys.each do |key|
+        dummy_filter = {}
+        dummy_filter[:tagk] = key
+        dummy_filter[:filter] = '*'
+        dummy_filter[:group_by] = false
+        dummy_filter[:type] = Memoir::FilterType::WILDCARD
+
+        parameters[:filters] << dummy_filter
+      end
+      ## HACK ##
+
+      parameters[:explicit_tags] = true
     end
 
 
